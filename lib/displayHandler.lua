@@ -40,13 +40,13 @@ local function drawObject(Data)
     --math logic:
         --inside rows arrays: taking the location of the object and adding/subtracting the relative square placement
     --draw s1
-    love.graphics.drawLayer(squareImage, Data.type, rowsX[math.floor(Data.loc.x+Data.s1.x)], rowsY[math.floor(Data.loc.y+Data.s1.y)], 0,squareScale,squareScale)
+    love.graphics.drawLayer(squareImage, Data.type, rowsX[Data.loc.x+Data.s1.x], rowsY[math.floor(Data.loc.y+Data.s1.y)], 0,squareScale,squareScale)
     --draw s3
-    love.graphics.drawLayer(squareImage, Data.type, rowsX[math.floor(Data.loc.x+Data.s2.x)], rowsY[math.floor(Data.loc.y+Data.s2.y)], 0,squareScale,squareScale)
+    love.graphics.drawLayer(squareImage, Data.type, rowsX[Data.loc.x+Data.s2.x], rowsY[math.floor(Data.loc.y+Data.s2.y)], 0,squareScale,squareScale)
     --draw s3
-    love.graphics.drawLayer(squareImage, Data.type, rowsX[math.floor(Data.loc.x+Data.s3.x)], rowsY[math.floor(Data.loc.y+Data.s3.y)], 0,squareScale,squareScale)
+    love.graphics.drawLayer(squareImage, Data.type, rowsX[Data.loc.x+Data.s3.x], rowsY[math.floor(Data.loc.y+Data.s3.y)], 0,squareScale,squareScale)
     --draw s4
-    love.graphics.drawLayer(squareImage, Data.type, rowsX[math.floor(Data.loc.x+Data.s4.x)], rowsY[math.floor(Data.loc.y+Data.s4.y)], 0,squareScale,squareScale)
+    love.graphics.drawLayer(squareImage, Data.type, rowsX[Data.loc.x+Data.s4.x], rowsY[math.floor(Data.loc.y+Data.s4.y)], 0,squareScale,squareScale)
 end
 
 

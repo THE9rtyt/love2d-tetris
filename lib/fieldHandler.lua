@@ -22,130 +22,116 @@ local squareType = { --object shape to number for drawing
     T = 6,
     Z = 7,
 }
-local rotations = {
-    I = {
-        function() --rotation 1
-            return {
-                type = 1,
-                rotation = 1,
-                s1 = {x=0,y=0},
-                s2 = {x=1,y=0},
-                s3 = {x=2,y=0},
-                s4 = {x=3,y=0},
-            }
-        end,
-        function() --rotation 2
-            return {
-                type = 1,
-                rotation = 1,
-                s1 = {x=0,y=0},
-                s2 = {x=1,y=0},
-                s3 = {x=2,y=0},
-                s4 = {x=3,y=0},
-            }
-        end
-    }
-}
 
-local shapeIndex = {
-    function(rotation)--1 define I
-        print("making an I!")
-        if not rotation then
-            rotation = 1
-        end
-        return {
-            type = 1,
+--[[
+    the idea here is to store each rotation of each shape in a large array.
+
+    this array is to be referenced for testing rotation clearences and setting an object to a rotation.
+]]
+local rotationSets = {
+{ --type 1, I
+        { -- rotation 1
             rotation = 1,
             s1 = {x=0,y=0},
             s2 = {x=1,y=0},
             s3 = {x=2,y=0},
             s4 = {x=3,y=0},
-        }
-    end,
-    function(rotation)--2 define J
-        print("making an J!")
-        return {
-            type = 2,
-            rotation = 1,
-            s1 = {x=0,y=0},
-            s2 = {x=1,y=0},
-            s3 = {x=2,y=0},
-            s4 = {x=2,y=-1}
-        }
-    end,
-    function(rotation)--3 define L
-        print("making an L!")
-        return {
-            type = 3,
-            rotation = 1,
-            s1 = {x=0,y=0},
-            s2 = {x=1,y=0},
-            s3 = {x=2,y=0},
-            s4 = {x=0,y=-1}
-        }
-    end,
-    function(rotation)--4 define O
-        print("making an O!")
-        return {
-            type = 4,
-            rotation = 1,
-            s1 = {x=1,y=0},
+        },
+        { -- rotation 2
+            rotation = 2,
+            s1 = {x=1,y=2},
+            s2 = {x=1,y=1},
+            s3 = {x=1,y=0},
+            s4 = {x=1,y=-1},
+        },
+        { -- rotation 3
+            rotation = 3,
+            s1 = {x=3,y=1},
+            s2 = {x=2,y=1},
+            s3 = {x=1,y=1},
+            s4 = {x=0,y=1},
+        },
+        { -- rotation 4
+            rotation = 4,
+            s1 = {x=2,y=-1},
             s2 = {x=2,y=0},
-            s3 = {x=1,y=-1},
-            s4 = {x=2,y=-1}
-        }
-    end,
-    function()--5 define S
-        print("making an S!")
-        return {
-            type = 5,
-            rotation = 1,
-            s1 = {x=1,y=0},
-            s2 = {x=2,y=0},
-            s3 = {x=0,y=-1},
-            s4 = {x=1,y=-1}
-        }
-    end,
-    function(rotation)--6 define T
-        print("making an T!")
-        return {
-            type = 6,
+            s3 = {x=2,y=1},
+            s4 = {x=2,y=2},
+        },
+    },
+{ --type 2, J
+        { --rotation 1
             rotation = 1,
             s1 = {x=0,y=0},
             s2 = {x=1,y=0},
             s3 = {x=2,y=0},
-            s4 = {x=1,y=-1}
-        }
-    end,
-    function(rotation)--7 define Z
-        print("making an Z!")
-        return {
-            type = 7,
-            rotation = 1,
-            s1 = {x=0,y=0},
+            s4 = {x=3,y=0},
+        },
+        { --rotation 2
+            rotation = 2,
+            s1 = {x=1,y=1},
             s2 = {x=1,y=0},
             s3 = {x=1,y=-1},
-            s4 = {x=2,y=-1}
+            s4 = {x=0,y=-1},
+        },
+        { -- rotation 3
+            rotation = 3,
+            s1 = {x=2,y=0},
+            s2 = {x=1,y=0},
+            s3 = {x=0,y=0},
+            s4 = {x=0,y=1},
+        },
+        { -- rotation 4
+            rotation = 4,
+            s1 = {x=1,y=-1},
+            s2 = {x=1,y=0},
+            s3 = {x=1,y=1},
+            s4 = {x=2,y=1},
         }
-    end,
+    },
+{ --type 3, L
+        { --rotation 1
+            rotation = 1,
+            s1 = {x=0,y=0},
+            s2 = {x=1,y=0},
+            s3 = {x=2,y=0},
+            s4 = {x=0,y=-1},
+        },
+        { --rotation 2
+            rotation = 2,
+            s1 = {x=1,y=-1},
+            s2 = {x=1,y=0},
+            s3 = {x=1,y=1},
+            s4 = {x=0,y=1},
+        },
+        { -- rotation 3
+            rotation = 3,
+            s1 = {x=2,y=0},
+            s2 = {x=1,y=0},
+            s3 = {x=0,y=0},
+            s4 = {x=0,y=-1},
+        },
+        { -- rotation 4
+            rotation = 4,
+            s1 = {x=1,y=-1},
+            s2 = {x=1,y=0},
+            s3 = {x=1,y=1},
+            s4 = {x=2,y=-1},
+        }
+    }
 }
 
 -------------------
 --private functions
 -------------------
-local function newObject(type_a) -- creates an object and what's left of it
-    objects = objects+1
-    print(objects)
-    objectData[objects] = shapeIndex[type_a]()
-    objectData[objects].type = type_a
-    objectData[objects].loc = {
-        x=2,
-        y=19
-    }
-    objectData[objects].rotation = 0
-    print(objectData[objects].type)
+local function newObject(type) -- creates an object and what's left of it
+    objects = objects+1 --index to next object
+    print("new object No. " .. objects)
+    print("new object is: " .. type)
+    objectData[objects] = rotationSets[type][1] --grab rotation and cube placements for default 1 rotation
+    objectData[objects].type = type --set type for future reference
+    objectData[objects].loc = { x=2, y=19 } --set start location
 end
-
 
 --------------------
 --module I/O methods
