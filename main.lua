@@ -6,6 +6,7 @@ trying to make a Tetris cuz why not
 
 local fieldHandler = require('lib.fieldHandler')
 local displayHandler = require('lib.displayHandler')
+local keyboardHandler= require('lib.keyboardHandler')
 
 local status = {
     clicked = false,
@@ -44,18 +45,30 @@ function love.update(t)
 end
 
 function love.draw()
-    local objectData,objects = fieldHandler.getObjects()
-    displayHandler.drawObjects(objectData,objects)--draws current moving piece
+    displayHandler.drawfield(fieldHandler.getField())
+    displayHandler.drawObjects(fieldHandler.getObjects())--draws current moving piece
 end
+
+function love.keypressed(key, scancode, isrepeat)
+    keyboardHandler.keyPressed(key)
+end
+
+function love.keyreleased(key)
+    print(key)
+    keyboardHandler.keyReleased(key)
+    if key == "escape" then
+       love.event.quit()
+    end
+ end
 
 function love.mousepressed(x, y, button, istouch)
     print(x,y)
 end
 
-function love.quit()
-    print("bye lol.")
-end
-
 function love.wheelmoved( x,y )
     
+end
+
+function love.quit()
+    print("bye lol.")
 end

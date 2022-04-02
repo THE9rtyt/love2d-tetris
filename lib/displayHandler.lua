@@ -36,17 +36,22 @@ end
 -------------------
 --private function
 -------------------
+
+local function drawSquare(type, X,Y)
+    love.graphics.drawLayer(squareImage, type, X, Y, 0,squareScale,squareScale)
+end
+
 local function drawObject(Data)
     --math logic:
         --inside rows arrays: taking the location of the object and adding/subtracting the relative square placement
     --draw s1
-    love.graphics.drawLayer(squareImage, Data.type, rowsX[Data.loc.x+Data.s1.x], rowsY[math.floor(Data.loc.y+Data.s1.y)], 0,squareScale,squareScale)
+    drawSquare(Data.type, rowsX[Data.loc.x+Data.s1.x], rowsY[math.floor(Data.loc.y+Data.s1.y)])
     --draw s3
-    love.graphics.drawLayer(squareImage, Data.type, rowsX[Data.loc.x+Data.s2.x], rowsY[math.floor(Data.loc.y+Data.s2.y)], 0,squareScale,squareScale)
+    drawSquare(Data.type, rowsX[Data.loc.x+Data.s2.x], rowsY[math.floor(Data.loc.y+Data.s2.y)])
     --draw s3
-    love.graphics.drawLayer(squareImage, Data.type, rowsX[Data.loc.x+Data.s3.x], rowsY[math.floor(Data.loc.y+Data.s3.y)], 0,squareScale,squareScale)
+    drawSquare(Data.type, rowsX[Data.loc.x+Data.s3.x], rowsY[math.floor(Data.loc.y+Data.s3.y)])
     --draw s4
-    love.graphics.drawLayer(squareImage, Data.type, rowsX[Data.loc.x+Data.s4.x], rowsY[math.floor(Data.loc.y+Data.s4.y)], 0,squareScale,squareScale)
+    drawSquare(Data.type, rowsX[Data.loc.x+Data.s4.x], rowsY[math.floor(Data.loc.y+Data.s4.y)])
 end
 
 
@@ -80,8 +85,18 @@ function displayHandler.resize(X,Y)--does all the math required to make drawing 
     squareScale = squareSize/standard
 end
 
-function displayHandler.drawObjects(objectData,objects)--draws the field
-    drawObject(objectData[objects])--draw current object
+function displayHandler.drawObjects(currentObject)--draws the field
+    drawObject(currentObject)--draw current object
+end
+
+function displayHandler.drawfield(field)
+    for x=0,fieldSize.x,1 do
+        for y=0,fieldSize.y,1 do
+            if field[x][y] ~= 0 then
+                drawSquare(field[x][y], rowsX[x], rowsY[y])
+            end
+        end
+    end
 end
 
 function displayHandler.drawMenu(settings_d)
