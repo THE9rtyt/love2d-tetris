@@ -17,15 +17,14 @@ local status = {
 
 function love.load()
     --game setup
-    fieldHandler.resetField()
+    --initialize fieldHandler
     fieldHandler.Init()
 
     --Initialize displayHandler
-    local windowX, windowY = love.window.getMode()
-    displayHandler.init(windowX,windowY,fieldHandler.getSize())
+    displayHandler.init(fieldHandler.getSize())
 end
 
-function love.resize(X, Y) --activated everytime the window is resized, it then redoes all the math for love.draw so it's always displayed correctly
+function love.resize(X,Y) --activated everytime the window is resized, it then redoes all the math for love.draw so it's always displayed correctly
     displayHandler.resize(X,Y)
 end
 
@@ -56,6 +55,7 @@ end
 function love.keyreleased(key)
     print(key)
     keyboardHandler.keyReleased(key)
+
     if key == "escape" then
        love.event.quit()
     end
