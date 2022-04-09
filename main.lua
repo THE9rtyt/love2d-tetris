@@ -12,7 +12,8 @@ local status = {
     clicked = false,
     gameEnded = false,
     inPlay = false,
-    timeElapsed = 0,
+    tElapsed = 0,
+    score = 0,
 }
 
 function love.load()
@@ -38,14 +39,13 @@ end
 
 function love.update(t)
     if status.inPlay and not status.gameEnded then
-        status.timeElapsed = status.timeElapsed + t
-        fieldHandler.update(status.timeElapsed)
+        status.tElapsed = status.tElapsed + t
+        status = fieldHandler.update(status)
     end
 end
 
 function love.draw()
-    displayHandler.drawfield(fieldHandler.getField())
-    displayHandler.drawObjects(fieldHandler.getObjects())--draws current moving piece
+    displayHandler.drawGame(fieldHandler.getDisplayInfo())
 end
 
 function love.keypressed(key, scancode, isrepeat)
@@ -53,7 +53,6 @@ function love.keypressed(key, scancode, isrepeat)
 end
 
 function love.keyreleased(key)
-    print(key)
     keyboardHandler.keyReleased(key)
 
     if key == "escape" then
@@ -62,11 +61,11 @@ function love.keyreleased(key)
  end
 
 function love.mousepressed(x, y, button, istouch)
-    print(x,y)
+    --future menu stuff
 end
 
 function love.wheelmoved( x,y )
-    
+    --dunno if I need this yet
 end
 
 function love.quit()

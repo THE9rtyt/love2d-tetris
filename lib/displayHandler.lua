@@ -72,29 +72,27 @@ function displayHandler.resize(X,Y)--does all the math required to make drawing 
     squareScale = squareSize/standard
 end
 
-function displayHandler.drawObjects(Object)--draws the field
-        --math logic:
-        --inside rows arrays: taking the location of the object and adding/subtracting the relative square placement
-    --draw s1
-    drawSquare(Object.type, rowsX[Object.loc.x+Object.s1.x], rowsY[math.floor(Object.loc.y+Object.s1.y)])
-    --draw s3
-    drawSquare(Object.type, rowsX[Object.loc.x+Object.s2.x], rowsY[math.floor(Object.loc.y+Object.s2.y)])
-    --draw s3
-    drawSquare(Object.type, rowsX[Object.loc.x+Object.s3.x], rowsY[math.floor(Object.loc.y+Object.s3.y)])
-    --draw s4
-    drawSquare(Object.type, rowsX[Object.loc.x+Object.s4.x], rowsY[math.floor(Object.loc.y+Object.s4.y)])
-end
 
-function displayHandler.drawfield(field)
+
+function displayHandler.drawGame(tbl)
+
+    --draw field background first
     love.graphics.setColor(.6,.5,.4)
     love.graphics.rectangle("fill", rowsX[0], rowsY[fieldSize.y], rowsX[fieldSize.x]-rowsX[0]+squareSize, windowY)
     love.graphics.setColor(1,1,1)
+
+    --draw the field second
     for x=0,fieldSize.x,1 do
         for y=0,fieldSize.y,1 do
-            if field[x][y] ~= 0 then
-                drawSquare(field[x][y], rowsX[x], rowsY[y])
+            if tbl.field[x][y] ~= 0 then
+                drawSquare(tbl.field[x][y], rowsX[x], rowsY[y])
             end
         end
+    end
+
+    --draw current object third
+    for i,v in ipairs({"s1","s2","s3","s4"}) do
+        drawSquare(tbl.Object.type, rowsX[tbl.Object.loc.x+tbl.Object[v].x], rowsY[math.floor(tbl.Object.loc.y+tbl.Object[v].y)])
     end
 end
 

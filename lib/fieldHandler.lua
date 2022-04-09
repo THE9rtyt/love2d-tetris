@@ -16,7 +16,7 @@ local fieldSize = { --basic field sizing vars
 local field = {}
 
 local flags = {
-    speed = .5, --sets the game speed
+    speed = .3, --sets the game speed
     step = 0, --step of the game. flips between 1/0 every second
 
     fastDown = false, --whether or not rapid down is enabled
@@ -274,30 +274,12 @@ local function newObject(type) -- creates an object and what's left of it
     Object.loc = { x=3, y=19 } --set start location
 end
 
-local function canMove(movement)
-    for i,v in ipairs(sIndex) do
-        print("checking", v, movement, ((Object.loc.x + movement + Object[v].x < 0) or (Object.loc.x + movement + Object[v].x > fieldSize.x)))
-        if ((Object.loc.x + movement + Object[v].x < 0) or (Object.loc.x + movement + Object[v].x > fieldSize.x)) or field[ Object.loc.x + movement + Object[v].x ][ Object.loc.y + Object[v].y ] ~= 0 then
-            return false
-        end
-    end
-    return true
-end
-
-local function canRotate(newRotation)
-    local temp = rotationSets[Object.type][newRotation] --easier indexing and reduces [line 2 lines down] from being loooooooong
-    for i,v in ipairs(sIndex) do
-        print("checking", v, Object.loc.x + temp[v].x, Object.loc.y + temp[v].y - 1)
-        if ((Object.loc.x + temp[v].x < 0 or Object.loc.y  + Object[v].y < 0) or (Object.loc.x + temp[v].x > fieldSize.x)) or field[ Object.loc.x + temp[v].x ][ Object.loc.y + temp[v].y ] ~= 0 then
-            return false
-        end
-    end
-    return true
-end
-
-local function canStep()
-    for i,v in ipairs(sIndex) do
-        if Object.loc.y  + Object[v].y - 1 <= 0 or field[ Object.loc.x + Object[v].x ][ Object.loc.y  + Object[v].y - 1 ] ~= 0 then
+local function checkPosition(LocX,LocY,rotation,type)
+    local temp = rotationSets[type][rotation]
+    for _,v in ipairs(sIndex) do
+        local X = LocX + temp[v].x
+        local Y = LocY + temp[v].y
+        if ((X < 0 or X > fieldSize.x) or (Y < 1 or Y > fieldSize.y)) or field[ X ][ Y ] ~= 0 then
             return false
         end
     end
@@ -305,8 +287,61 @@ local function canStep()
 end
 
 local function saveObject()
-    for i,v in ipairs(sIndex) do
+    for _,v in ipairs(sIndex) do
         field[Object.loc.x + Object[v].x][Object.loc.y  + Object[v].y] = Object.type
+    end
+end
+
+local function checkLines()
+    local temp = {}
+    --bring every line into a table
+    for _,v in ipairs(sIndex) do
+        table.insert(temp,Object.loc.y+Object[v].y)
+    end
+
+    --remove duplicate lines numbers
+    local lines = {}
+    local hash = {}
+    for _,v in ipairs(temp) do
+        if not hash[v] then
+            lines[#lines+1] = v
+            hash[v] = true
+        end
+    end
+    temp = {}
+    print("lines minimized " .. #lines .. " to check")
+    
+    --and check lines that might have been completed
+    for _,v in ipairs(lines) do
+        local complete = true
+        for x=0,fieldSize.x,1 do
+            if field[x][v] == 0 then
+                complete = false
+                break
+            end
+        end
+        if complete then
+            table.insert(temp,v)
+        end
+    end
+    return temp
+end
+
+local function clearLines(lines)
+    local highest = lines[1]
+    for _,v in ipairs(lines) do
+        for x=0,fieldSize.x,1 do
+            field[x][v] = 0
+        end
+        if v > highest then
+            highest = v
+        end
+    end
+    for y=highest,fieldSize.y,1 do
+        for x=0,fieldSize.x,1 do
+            field[x][y-#lines] = field[x][y]
+            field[x][y] = 0
+        end
     end
 end
 
@@ -319,8 +354,11 @@ function fieldHandler.Init()
     print(Object.s1.x)
 end
 
-function fieldHandler.getField()
-    return field
+function fieldHandler.getDisplayInfo()
+    return {
+        field = field,
+        Object = Object
+    }
 end
 
 function fieldHandler.getSize()
@@ -328,7 +366,7 @@ function fieldHandler.getSize()
 end
 
 function fieldHandler.getObjects()
-    return Object,nextObject
+    return Object
 end
 
 ----------------------------------
@@ -359,6 +397,7 @@ function fieldHandler.down()
         runSpeed = flags.speed
     end
 end
+
 --left/right inputs to set movement flag
 function fieldHandler.right()
     flags.movement = 1
@@ -382,7 +421,7 @@ function fieldHandler.clockwise()
 end
 
 -- the main field handling happens here.
-function fieldHandler.update(tElapsed)-- this function handles all movement of the currentObject that is moving
+function fieldHandler.update(status)-- this function handles all movement of the currentObject that is moving
 
     if flags.rotation ~= 0 then --rotation flag set nonzero, so we check if can rotate and then rotate
         print("rotating", Object.rotation)
@@ -393,7 +432,7 @@ function fieldHandler.update(tElapsed)-- this function handles all movement of t
             newRotation = 4
         end
 
-        if canRotate(newRotation) then
+        if checkPosition(Object.loc.x,Object.loc.y,newRotation,Object.type) then
             local temp = {}
             temp.loc = Object.loc --save location
             temp.type = Object.type --save type
@@ -407,7 +446,7 @@ function fieldHandler.update(tElapsed)-- this function handles all movement of t
 
     if flags.movement ~= 0 then --movement flag set nonzero, so we check if can move and then move
         print("moving", Object.loc.x, Object.loc.y)
-        if canMove(flags.movement) then
+        if checkPosition(Object.loc.x + flags.movement,Object.loc.y,Object.rotation,Object.type) then
             Object.loc.x = Object.loc.x + flags.movement
         end
 
@@ -416,18 +455,25 @@ function fieldHandler.update(tElapsed)-- this function handles all movement of t
 
     --math logic: total time divided by the speed setting, rounded and turned to 0/1
     --when runSpeed == 1, it is 1 step per second
-    if math.floor(tElapsed/runSpeed)%2 ~= flags.step then -- clear to step
+    if math.floor(status.tElapsed/runSpeed)%2 ~= flags.step then -- clear to step
         --print(math.floor(tElapsed/runSpeed)%2, flags.step)
-        flags.step = math.floor(tElapsed/runSpeed)%2
-        if canStep() then
-                print("stepping!")
-                Object.loc.y = Object.loc.y-1
+        flags.step = math.floor(status.tElapsed/runSpeed)%2
+        if checkPosition(Object.loc.x,Object.loc.y-1,Object.rotation,Object.type) then
+            print("stepping!")
+            Object.loc.y = Object.loc.y-1
         else --cannot step
             saveObject()--save object placement to field and make a new object
+            local lines = checkLines()
+            if lines[1] then --if lines is set, ther is atleast 1 line to clear
+                status.score = status.score + #lines
+                clearLines(lines)
+                print(status.score)
+            end
             --need to check for a complete line
             newObject(nextObject)
         end
     end
-end
+    return status
+end --function fieldHandler.update
 
 return fieldHandler
