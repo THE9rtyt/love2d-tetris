@@ -3,7 +3,8 @@ local fieldHandler = {}
 ---------------------------------------------------------
 -- Handles all private field vars and manages interaction
 ---------------------------------------------------------
-local objects, nextObject --number of objects on the screen
+local objects
+local nextObject = {} --number of objects on the screen
 local Object = {} -- array for storing object info like squaretype, location, size and what parts are left
 
 
@@ -263,15 +264,28 @@ protect(rotationSets)
 --private functions
 -------------------
 
-local function newObject(type) -- creates an object and what's left of it
-    objects = objects+1 --index to next object
-    nextObject = love.math.random(1,7) --ready next Object
+local function ReadyObject()
+    local type = love.math.random(1,7) --ready next Object
 
     print("new object No. " .. objects)
     print("new object is: " .. type)
-    Object = rotationSets[type][1] --grab rotation and cube placements for default 1 rotation
-    Object.type = type --set type for future reference
+    nextObject = rotationSets[type][1] --grab rotation and cube placements for default 1 rotation
+    nextObject.type = type --set type for future reference
+end
+
+local function newObject() -- creates an object and what's left of it
+
+    objects = objects+1 --index to next object
+    Object = rotationSets[nextObject.type][1]
+    Object.type = nextObject.type
     Object.loc = { x=3, y=19 } --set start location
+
+    local type = love.math.random(1,7) --ready next Object
+
+    print("new object No. " .. objects)
+    print("next object is: " .. type)
+    nextObject = rotationSets[type][1] --grab rotation and cube placements for default 1 rotation
+    nextObject.type = type --set type for future reference
 end
 
 local function checkPosition(LocX,LocY,rotation,type)
@@ -329,7 +343,10 @@ end
 
 local function clearLines(lines)
     local highest = lines[1]
-    for _,v in ipairs(lines) do
+    table.sort(lines) --sort cause we need the lowest first
+
+    for i,v in ipairs(lines) do
+        print("clearing line: " .. v)
         for x=0,fieldSize.x,1 do
             field[x][v] = 0
         end
@@ -337,11 +354,22 @@ local function clearLines(lines)
             highest = v
         end
     end
-    for y=highest,fieldSize.y,1 do
-        for x=0,fieldSize.x,1 do
-            field[x][y-#lines] = field[x][y]
-            field[x][y] = 0
+    local drop = 1 --number of lines we're going to drop
+    local shift = 0 --a shifte value to "shift" which line we're on in the event multiple lines are dropping but they're not togethor
+    for i,v in ipairs(lines) do
+        if v+1 == lines[i+1] then --check if it's right above the line, so we increase the number to drop from, should also fail if lines[i+1] doesn't exist
+            drop = drop+1
+        else --if the next line is not right above it, we're going to go ahead and drop what we have
+            for y=v+1-shift,fieldSize.y,1 do
+                print("dropping line "..y.." to "..y-drop)
+                for x = 0,fieldSize.x,1 do
+                    field[x][y-drop] = field[x][y]
+                    field[x][y] = 0
+                end
+                shift = drop
+            end
         end
+    
     end
 end
 
@@ -351,13 +379,13 @@ end
 function fieldHandler.Init()
     objects = 0
     fieldHandler.beginGame()
-    print(Object.s1.x)
 end
 
 function fieldHandler.getDisplayInfo()
     return {
         field = field,
-        Object = Object
+        Object = Object,
+        nextObject = nextObject,
     }
 end
 
@@ -375,9 +403,8 @@ end
 function fieldHandler.beginGame()
     objects = 0
     fieldHandler.resetField()
-
-    nextObject = love.math.random(1,7)
-    newObject(nextObject)
+    ReadyObject()--ran just to load a new Object into nextObject
+    newObject()
 end
 
 function fieldHandler.resetField() --clears field data to empty spaces
@@ -424,7 +451,6 @@ end
 function fieldHandler.update(status)-- this function handles all movement of the currentObject that is moving
 
     if flags.rotation ~= 0 then --rotation flag set nonzero, so we check if can rotate and then rotate
-        print("rotating", Object.rotation)
         local newRotation = Object.rotation + flags.rotation
         if newRotation > 4 then --seta 5 -> 1 and 0 -> 4
             newRotation = 1
@@ -434,6 +460,7 @@ function fieldHandler.update(status)-- this function handles all movement of the
 
         if checkPosition(Object.loc.x,Object.loc.y,newRotation,Object.type) then
             local temp = {}
+            print(Object.type)
             temp.loc = Object.loc --save location
             temp.type = Object.type --save type
             Object = rotationSets[ Object.type ][ newRotation ]--need to figure out how to hot load the new cube placents w/o deleteing location info
@@ -445,7 +472,6 @@ function fieldHandler.update(status)-- this function handles all movement of the
     end
 
     if flags.movement ~= 0 then --movement flag set nonzero, so we check if can move and then move
-        print("moving", Object.loc.x, Object.loc.y)
         if checkPosition(Object.loc.x + flags.movement,Object.loc.y,Object.rotation,Object.type) then
             Object.loc.x = Object.loc.x + flags.movement
         end
@@ -459,7 +485,7 @@ function fieldHandler.update(status)-- this function handles all movement of the
         --print(math.floor(tElapsed/runSpeed)%2, flags.step)
         flags.step = math.floor(status.tElapsed/runSpeed)%2
         if checkPosition(Object.loc.x,Object.loc.y-1,Object.rotation,Object.type) then
-            print("stepping!")
+            --print("stepping!")
             Object.loc.y = Object.loc.y-1
         else --cannot step
             saveObject()--save object placement to field and make a new object
@@ -467,10 +493,10 @@ function fieldHandler.update(status)-- this function handles all movement of the
             if lines[1] then --if lines is set, ther is atleast 1 line to clear
                 status.score = status.score + #lines
                 clearLines(lines)
-                print(status.score)
+                print("score updated: "..status.score)
             end
             --need to check for a complete line
-            newObject(nextObject)
+            newObject()
         end
     end
     return status

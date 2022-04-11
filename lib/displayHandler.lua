@@ -90,10 +90,13 @@ function displayHandler.drawGame(tbl)
         end
     end
 
-    --draw current object third
+    --draw current Object and nextObject third
     for i,v in ipairs({"s1","s2","s3","s4"}) do
         drawSquare(tbl.Object.type, rowsX[tbl.Object.loc.x+tbl.Object[v].x], rowsY[math.floor(tbl.Object.loc.y+tbl.Object[v].y)])
+        drawSquare(tbl.nextObject.type,rowsX[9]+squareSize*3+tbl.nextObject[v].x*squareSize,rowsY[17]-tbl.nextObject[v].y*squareSize)
     end
+
+
 end
 
 function displayHandler.drawMenu(settings_d)
