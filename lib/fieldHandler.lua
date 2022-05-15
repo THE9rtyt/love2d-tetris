@@ -29,6 +29,8 @@ local runSpeed = flags.speed
 
 local sIndex = {"s1", "s2", "s3", "s4"} --table to allow indexing through the 4 squares of an object
 
+local startLoc = { x=3, y=19 } --starting location for objects
+
 --[[
     the idea here is to store each rotation of each shape in a large array.
 
@@ -256,9 +258,9 @@ local function protect(tbl) --used to set variables to read-only
         end
     })
 end
-protect(fieldSize)
-protect(sIndex)
-protect(rotationSets)
+fieldSize = protect(fieldSize)
+rotationSets = protect(rotationSets)
+startLoc = protect(startLoc)
 
 -------------------
 --private functions
@@ -278,7 +280,8 @@ local function newObject() -- creates an object and what's left of it
     objects = objects+1 --index to next object
     Object = rotationSets[nextObject.type][1]
     Object.type = nextObject.type
-    Object.loc = { x=3, y=19 } --set start location
+    Object.loc = {x = startLoc.x, y = startLoc.y} --set start location
+    print(Object.loc.x)
 
     local type = love.math.random(1,7) --ready next Object
 
@@ -293,10 +296,12 @@ local function checkPosition(LocX,LocY,rotation,type)
     for _,v in ipairs(sIndex) do
         local X = LocX + temp[v].x
         local Y = LocY + temp[v].y
+        print("testing  X:"..X.."  Y:"..Y)
         if ((X < 0 or X > fieldSize.x) or (Y < 1 or Y > fieldSize.y)) or field[ X ][ Y ] ~= 0 then
             return false
         end
     end
+    print("passing movement",LocX,LocY)
     return true
 end
 
@@ -357,7 +362,7 @@ local function clearLines(lines)
     local drop = 1 --number of lines we're going to drop
     local shift = 0 --a shifte value to "shift" which line we're on in the event multiple lines are dropping but they're not togethor
     for i,v in ipairs(lines) do
-        if v+1 == lines[i+1] then --check if it's right above the line, so we increase the number to drop from, should also fail if lines[i+1] doesn't exist
+        if v+1 == lines[i+1] then --check if it's right above the line, so we increase the number to drop from, will also fail if lines[i+1] doesn't exist
             drop = drop+1
         else --if the next line is not right above it, we're going to go ahead and drop what we have
             for y=v+1-shift,fieldSize.y,1 do
@@ -369,7 +374,6 @@ local function clearLines(lines)
                 shift = drop
             end
         end
-    
     end
 end
 
@@ -448,7 +452,7 @@ function fieldHandler.clockwise()
 end
 
 -- the main field handling happens here.
-function fieldHandler.update(status)-- this function handles all movement of the currentObject that is moving
+function fieldHandler.update(status)-- this function handles all movement of the currentObject
 
     if flags.rotation ~= 0 then --rotation flag set nonzero, so we check if can rotate and then rotate
         local newRotation = Object.rotation + flags.rotation
