@@ -3,7 +3,7 @@
 very WIP. currently runs and functions as Tetris and no more
 
 ### Features:
-- Tetrs gameplay
+- Tetris gameplay
 - Next tetromino view
 
 # Installation
@@ -13,7 +13,7 @@ very WIP. currently runs and functions as Tetris and no more
 ## Run
 - Run love.exe, giving the game's folder as an argument
   - Example (windows):
-"C:\Program Files\LOVE\love.exe" "C:\games\MineSweeperFolder"
+"C:\Program Files\LOVE\love.exe" "C:\path\to\MineSweeperFolder"
 - for Mac OS X and more, please refer to [LÖVE's wiki instructions](https://love2d.org/wiki/Getting_Started)
 
 
